@@ -1,3 +1,9 @@
+snaps/*.jpg
+snaps/*.gif
+temp/
+*.bak
+.idea
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

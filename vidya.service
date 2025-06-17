@@ -1,0 +1,14 @@
+[Unit]
+Description=Vidya
+After=network.target
+
+[Service]
+User=bobrock
+Group=bobrock
+WorkingDirectory=/home/bobrock/extras/vidya
+Environment="PATH=/home/bobrock/venvs/vidya-312/bin"
+ExecStart=/home/bobrock/venvs/vidya-312/bin/gunicorn --workers 2 --bind 127.0.0.1:5007 -m 007 wsgi:app --access-logfile '-' --error-logfile '-' --log-level 'debug'
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

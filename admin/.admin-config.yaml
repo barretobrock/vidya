@@ -1,0 +1,6 @@
+PROJECT: vidya
+PY_LIB_NAME: vidya
+PROJECT_DIR: ${HOME}/extras/${PROJECT}
+VENV_NAME: vidya-312
+VENV_PATH: ${HOME}/venvs/${VENV_NAME}/bin/python3
+MAIN_BRANCH: main
