@@ -16,11 +16,11 @@ from flask import (
 import imageio.v3 as iio
 import imutils
 from loguru import logger
-from pygifsicle import optimize
+import numpy as np
 
 from vidya import ROOT
 from vidya.core.camera import IPCamera
-from vidya.core.motion_detect import detect_motion
+from vidya.core.motion_detect import detect_motion_with_diff
 from vidya.core.notify import upload_to_slack
 
 bp_cam = Blueprint('snap', __name__, url_prefix='/cam/<int:cam_id>/')
@@ -74,10 +74,13 @@ def do_snapshot(cam_id: int, quality: int = 35, is_optimize: bool = True) -> Tup
     if base_img_path.exists():
         logger.debug('Reading in past image')
         past_img = Image.open(base_img_path)
-        _, bg, _ = detect_motion(past_img, None)
-        img, _, ctrs = detect_motion(img, bg)
+        img_arr, ctrs = detect_motion_with_diff(
+            img_arr=np.asarray(img, dtype=np.uint8),
+            prev_img_arr=np.asarray(past_img, dtype=np.uint8)
+        )
+        img = Image.fromarray(img_arr)
     else:
-        ctrs = 0
+        ctrs = []
 
     img.save(snap_img_path, quality=quality, optimize=is_optimize)
     return snap_img_path, len(ctrs)
@@ -116,18 +119,20 @@ def take_gif(cam_id):
     cap = cam.stream()
     frames = []
     cnts_per_frame = []
-    bg = None
+    prev_rgb_frame_arr = None
 
     logger.debug('Beginning frame collection')
     for i in range(n_frames):
         _, frame = cap.read()
         if frame.shape[1] > 640:
             frame = imutils.resize(frame, width=640)
-        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        rgb_frame, bg, cnts = detect_motion(rgb_frame, bg)
+        rgb_frame_arr = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+        rgb_frame_arr_drawn, cnts = detect_motion_with_diff(img_arr=rgb_frame_arr, prev_img_arr=prev_rgb_frame_arr)
         # TODO: Capture cnts per frame and put average in slack msg
         cnts_per_frame.append(len(cnts))
-        frames.append(rgb_frame)
+        frames.append(rgb_frame_arr_drawn)
+        prev_rgb_frame_arr = rgb_frame_arr.copy()
 
     cap.release()
     logger.debug('Completed frame collection')
@@ -135,8 +140,6 @@ def take_gif(cam_id):
     gif_path = BASE_PATH.joinpath(f'cam_{cam_id}_motion.gif')
     logger.debug('Saving gif...')
     iio.imwrite(gif_path, frames, duration=200, loop=0, quality=1)
-    logger.debug('Optimizing gif...')
-    optimize(gif_path)
 
     logger.debug('Uploading gif to Slack...')
     upload_to_slack(

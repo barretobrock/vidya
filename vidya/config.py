@@ -17,6 +17,7 @@ class BaseConfig(object):
     TESTING = False
 
     LOG_DIR = ROOT.joinpath('logs')
+    SERVICE_NAME = 'vidya'
 
     VERSION = __version__
     PORT = 5007

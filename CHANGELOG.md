@@ -15,6 +15,14 @@ _Note: 'Unreleased' section below is used for untagged changes that will be issu
 #### Security
 __BEGIN-CHANGELOG__
  
+### [0.1.4] - 2025-06-18
+#### Added
+ - motion detection via image difference
+#### Changed
+ - motion detection methods share contour application method
+#### Removed
+ - gif optimization step
+ 
 ### [0.1.3] - 2025-06-18
 #### Added
  - `opencv-python` dep was missing

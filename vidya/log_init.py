@@ -3,6 +3,7 @@ import sys
 
 from loguru import logger
 
+
 class InterceptHandler(logging.Handler):
     def __init__(self, logger):
         super().__init__()
@@ -51,7 +52,7 @@ def configure_log(app):
         # First, ensure all the directories are made
         app.config.get('LOG_DIR').mkdir(parents=True, exist_ok=True)
         handlers.append({
-            'sink': app.config.get('LOG_DIR').joinpath('luks.log'),
+            'sink': app.config.get('LOG_DIR').joinpath('{}.log'.format(app.config.get('SERVICE_NAME'))),
             'level': app.config.get('LOG_LEVEL'),
             'rotation': '7 days',
             'retention': '30 days',
