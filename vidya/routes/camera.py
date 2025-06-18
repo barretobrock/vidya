@@ -80,7 +80,7 @@ def do_snapshot(cam_id: int, quality: int = 35, is_optimize: bool = True) -> Tup
         ctrs = 0
 
     img.save(snap_img_path, quality=quality, optimize=is_optimize)
-    return snap_img_path, ctrs
+    return snap_img_path, len(ctrs)
 
 
 @bp_cam.route('/update-img', methods=['GET'])
