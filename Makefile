@@ -1,19 +1,25 @@
 
 SHELL 	:= /bin/bash
+# Vars
+VENV	:=~/venvs/vidya-312
 
 bump-patch:
-	sh admin/admin-commands.sh --cmd bump --level patch
+	$(SHELL) admin/admin-commands.sh --cmd bump --level patch
 bump-minor:
-	sh admin/admin-commands.sh --cmd bump --level minor
+	$(SHELL) admin/admin-commands.sh --cmd bump --level minor
 bump-major:
-	sh admin/admin-commands.sh --cmd bump --level major
+	$(SHELL) admin/admin-commands.sh --cmd bump --level major
 pull:
-	sh admin/admin-commands.sh --cmd pull
+	$(SHELL) admin/admin-commands.sh --cmd pull
 push:
-	sh admin/admin-commands.sh --cmd push
+	$(SHELL) admin/admin-commands.sh --cmd push
 install:
 	# First-time install - use when lock file is stable
 	poetry install -v
+install-prod:
+	# Production install
+	source $(VENV)/bin/activate
+	python3 -m pip install -r requirements.frozen --no-deps
 update:
 	# Update lock file based on changed reqs
 	poetry update -v

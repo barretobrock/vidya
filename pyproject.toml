@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "vidya"
-version = '0.1.0'
+version = '0.1.1'
 description = "Simple Motion Detection via RTSP and OpenCV"
 authors = ["bobrock <bobrock@tuta.io>"]
 license = "MIT"
@@ -13,6 +13,9 @@ packages = [
     { include = 'vidya' },
 ]
 include = ["CHANGELOG.md"]
+
+[tool.poetry.requires-plugins]
+poetry-plugin-export = ">=1.8"
 
 [tool.poetry.dependencies]
 python = ">=3.12.4,<4.0"
