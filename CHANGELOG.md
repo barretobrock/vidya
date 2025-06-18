@@ -15,11 +15,14 @@ _Note: 'Unreleased' section below is used for untagged changes that will be issu
 #### Security
 __BEGIN-CHANGELOG__
  
+### [0.1.2] - 2025-06-18
+#### Added
+ - Separated functionality of base snapshots and regular (comparison) snapshots.
+ 
 ### [0.1.1] - 2025-06-18
 #### Added
  - Production install improvements to the Makefile
  - frozen reqs to avoid poetry dep in prod
-
 
 ### [0.1.0] - 2025-05-26
 #### Added

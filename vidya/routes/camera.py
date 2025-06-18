@@ -2,20 +2,20 @@ from datetime import datetime
 from pathlib import Path
 from typing import (
     List,
-    Tuple
+    Tuple,
 )
 
+from PIL import Image
 import cv2
-import imutils
 from flask import (
     Blueprint,
     current_app,
     make_response,
-    request
+    request,
 )
-from loguru import logger
 import imageio.v3 as iio
-from PIL import Image
+import imutils
+from loguru import logger
 from pygifsicle import optimize
 
 from vidya import ROOT
@@ -40,6 +40,7 @@ def process_args() -> Tuple[str, str, int]:
         take_seconds = int(take_seconds)
     return detection_type, detection_time, take_seconds
 
+
 def build_message(detection_type: str, cam: IPCamera, detection_time: str,
                   cnts: int = None, cnts_per_frame: List[str] = None) -> str:
     msg = f'*`{detection_type.title()}`* detected in `{cam.cam_name}` at `{detection_time}`.'
@@ -49,31 +50,46 @@ def build_message(detection_type: str, cam: IPCamera, detection_time: str,
         msg += f' *`{sum(cnts_per_frame) / len(cnts_per_frame)}`* avg contours per frame.'
     return msg
 
-def do_snapshot(cam_id: int, quality: int = 35, is_optimize: bool = True) -> Tuple[Path, int]:
-    img_path = BASE_PATH.joinpath(f'cam_{cam_id}_snap.jpg')
+
+def do_base_snapshot(cam_id: int, quality: int = 35, is_optimize: bool = True):
+    """Takes a 'base' snapshot -- used for setting baseline for comparing motion"""
+    base_img_path = BASE_PATH.joinpath(f'cam_{cam_id}_base.jpg')
     cam = current_app.extensions['cams'][cam_id]  # type: IPCamera
 
     logger.debug('Taking snapshot...')
     img = cam.snap()
 
-    if img_path.exists():
+    img.save(base_img_path, quality=quality, optimize=is_optimize)
+
+
+def do_snapshot(cam_id: int, quality: int = 35, is_optimize: bool = True) -> Tuple[Path, int]:
+    """Takes a snapshot. If there's a base image, applies contours as a motion comparison"""
+    base_img_path = BASE_PATH.joinpath(f'cam_{cam_id}_base.jpg')
+    snap_img_path = BASE_PATH.joinpath(f'cam_{cam_id}_snap.jpg')
+    cam = current_app.extensions['cams'][cam_id]  # type: IPCamera
+
+    logger.debug('Taking snapshot...')
+    img = cam.snap()
+
+    if base_img_path.exists():
         logger.debug('Reading in past image')
-        past_img = Image.open(img_path)
+        past_img = Image.open(base_img_path)
         _, bg, _ = detect_motion(past_img, None)
         img, _, ctrs = detect_motion(img, bg)
     else:
         ctrs = 0
 
-    img.save(img_path, quality=quality, optimize=is_optimize)
-    return img_path, ctrs
+    img.save(snap_img_path, quality=quality, optimize=is_optimize)
+    return snap_img_path, ctrs
 
 
 @bp_cam.route('/update-img', methods=['GET'])
 def update_base_img(cam_id: int):
     """Updates the 'base' image to serve as comparison against
     the image that's snapped on motion"""
-    _ = do_snapshot(cam_id)
+    do_base_snapshot(cam_id)
     return make_response('', 200)
+
 
 @bp_cam.route('/snap', methods=['GET'])
 def snapshot(cam_id: int):
