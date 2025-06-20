@@ -7,7 +7,7 @@ User=bobrock
 Group=bobrock
 WorkingDirectory=/home/bobrock/extras/vidya
 Environment="PATH=/home/bobrock/venvs/vidya-312/bin"
-ExecStart=/home/bobrock/venvs/vidya-312/bin/celery -A vidya.celery_tasks.celery_app worker --log-level=info
+ExecStart=/home/bobrock/venvs/vidya-312/bin/celery -A vidya.celery_tasks.celery_app worker --loglevel=info
 Restart=on-failure
 
 [Install]
