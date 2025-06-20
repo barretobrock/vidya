@@ -51,7 +51,7 @@ def apply_contours(img_arr: NDArray, fg_mask: NDArray) -> Tuple[NDArray, List[Tu
     logger.debug(f'Total initial contours: {len(contours)}')
 
     logger.debug(f'Removing contours (up to {len(contours)}) by area...')
-    min_contour_area = 250
+    min_contour_area = 200
     max_contour_area = 90_000
     large_contours = [cnt for cnt in contours if max_contour_area > cv2.contourArea(cnt) > min_contour_area]
 

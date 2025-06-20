@@ -15,6 +15,13 @@ _Note: 'Unreleased' section below is used for untagged changes that will be issu
 #### Security
 __BEGIN-CHANGELOG__
  
+### [0.1.5] - 2025-06-19
+#### Added
+ - task broker instances for async request handling: celery, redis  
+#### Changed
+ - request params now include `quality`
+ - gif maker now builds via `PIL.Image` instead of `imageio`
+ 
 ### [0.1.4] - 2025-06-18
 #### Added
  - motion detection via image difference

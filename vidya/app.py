@@ -4,22 +4,23 @@ from flask import Flask
 from loguru import logger
 from slack_sdk import WebClient
 
+from vidya.celery_init import celery_init_app
 from vidya.config import (
     DevelopmentConfig,
-    ProductionConfig
+    ProductionConfig,
 )
 from vidya.core.camera import IPCamera
 from vidya.log_init import (
     InterceptHandler,
-    configure_log
+    configure_log,
 )
+from vidya.routes.camera import bp_cam
 from vidya.routes.helpers import (
     clear_trailing_slash,
     log_after,
     log_before,
 )
 from vidya.routes.main import bp_main
-from vidya.routes.camera import bp_cam
 
 ROUTES = [
     bp_main,
@@ -30,7 +31,13 @@ ROUTES = [
 def create_app(*args, **kwargs) -> Flask:
     """Creates a Flask app instance"""
     # Config app
-    config_class = kwargs.pop('config_class', DevelopmentConfig)
+    config_class = kwargs.get('config_class')
+    if config_class is None:
+        if os.getenv('ENV', 'dev').lower() == 'prod':
+            config_class = ProductionConfig
+        else:
+            config_class = DevelopmentConfig
+
     if not isinstance(config_class, (DevelopmentConfig, ProductionConfig)):
         logger.debug('Config wasn\'t yet instantiated - doing that.')
         config_class = config_class()
@@ -50,6 +57,19 @@ def create_app(*args, **kwargs) -> Flask:
     logger.info('Registering routes...')
     for ruut in ROUTES:
         app.register_blueprint(ruut)
+
+    # Initialize Celery
+    app.config.from_mapping(
+        CELERY=dict(
+            broker_url=os.environ['REDIS_URL'],
+            broker_connection_retry_on_startup=True,
+            result_backend=os.environ['REDIS_URL'],
+            task_ignore_result=True,
+            timezone='America/Chicago',
+        )
+    )
+    app.config.from_prefixed_env()
+    celery_init_app(app)
 
     client = WebClient(token=os.environ['SLACK_BOT_TOKEN'])
     app.extensions.setdefault('slack', client)

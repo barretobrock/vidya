@@ -1,0 +1,14 @@
+[Unit]
+Description=Vidya Celery Worker
+After=network.target
+
+[Service]
+User=bobrock
+Group=bobrock
+WorkingDirectory=/home/bobrock/extras/vidya
+Environment="PATH=/home/bobrock/venvs/vidya-312/bin"
+ExecStart=/home/bobrock/venvs/vidya-312/bin/celery -A vidya.celery_tasks.celery_app worker --log-level=info
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
