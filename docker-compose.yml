@@ -5,6 +5,4 @@ services:
     container_name: redis
     restart: unless-stopped
     network_mode: host
-    ports:
-      - "6379:6379"
 
