@@ -3,6 +3,7 @@ snaps/*.gif
 temp/
 *.bak
 .idea
+.sessions/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -1,3 +1,4 @@
+from enum import StrEnum
 from typing import (
     List,
     Tuple,
@@ -10,6 +11,11 @@ from numpy.typing import NDArray
 
 DEFAULT_THRESH = 20
 DEFAULT_KERNEL_SIZE = (5, 5)
+
+
+class MotionDetectionTypes(StrEnum):
+    DIFF = 'DIFF'
+    BGSUB = 'BGSUB'
 
 
 def detect_motion_with_diff(img_arr: NDArray, prev_img_arr: NDArray = None) -> Tuple[NDArray, List[Tuple]]:

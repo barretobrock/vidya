@@ -20,7 +20,7 @@ TASK_NAME_GIF = 'vidya.celery_tasks.take_gif'
 
 @bp_cam.route('/snap', methods=['GET'])
 def snapshot(cam_id: int):
-    detection_type, detection_time, _, quality = process_args()
+    detection_type, detection_time, _, quality, _ = process_args()
 
     payload = dict(
         cam_id=cam_id,
@@ -45,14 +45,15 @@ def snapshot(cam_id: int):
 
 @bp_cam.route('/gif', methods=['GET'])
 def take_gif(cam_id):
-    detection_type, detection_time, take_seconds, quality = process_args()
+    detection_type, detection_time, take_seconds, quality, fps = process_args()
 
     payload = dict(
         cam_id=cam_id,
         detection_type=detection_type,
         detection_time=detection_time,
         take_seconds=take_seconds,
-        quality=quality
+        quality=quality,
+        fps=fps
     )
 
     celery_app = get_celery()

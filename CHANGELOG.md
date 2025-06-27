@@ -15,6 +15,15 @@ _Note: 'Unreleased' section below is used for untagged changes that will be issu
 #### Security
 __BEGIN-CHANGELOG__
  
+### [0.1.6] - 2025-06-26
+#### Added
+ - Avoid `ZeroDivisionError` when calculating avg contours in gif
+ - Token generation method is way less greedy now
+#### Changed
+ - Speed up snap process by delaying full process in favor of taking a comparison snap sooner
+#### Removed
+ - FFMPEG capture mode from RTSP steam (seems faster?)
+ 
 ### [0.1.5] - 2025-06-19
 #### Added
  - task broker instances for async request handling: celery, redis  

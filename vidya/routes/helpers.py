@@ -40,11 +40,12 @@ def get_celery() -> Celery:
     return current_app.extensions['celery']
 
 
-def process_args() -> Tuple[str, str, int, int]:
+def process_args() -> Tuple[str, str, int, int, int]:
     detection_type = request.args.get('detection_type', 'motion')
     detection_time = request.args.get('detection_time')
     take_seconds = request.args.get('take_seconds', '5')
     quality = request.args.get('quality', '35')
+    fps = request.args.get('fps', '10')
 
     if detection_time is None or detection_time == '':
         detection_time = datetime.now().strftime('%F %T')
@@ -58,7 +59,12 @@ def process_args() -> Tuple[str, str, int, int]:
     else:
         quality = int(quality)
 
-    return detection_type, detection_time, take_seconds, quality
+    if fps is None or fps == '':
+        fps = 10
+    else:
+        fps = int(fps)
+
+    return detection_type, detection_time, take_seconds, quality, fps
 
 
 def log_before():
