@@ -151,7 +151,7 @@ class MotionDetector:
             x, y, w, h = cv2.boundingRect(cnt)
             thickness = 1
             color = (255, 0, 0)
-            img_arr = cv2.drawContours(img_arr, cnt, -1, (0, 255, 0), 1)
+            img_arr = cv2.drawContours(img_arr.copy(), cnt, -1, (0, 255, 0), 1)
             img_arr = cv2.rectangle(img_arr, (x, y), (x + w, y + h), color, thickness)
 
             # cntrs_out.append(((x, y), (x + w, y + h)))
