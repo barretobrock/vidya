@@ -31,6 +31,7 @@ class CaptureMode(StrEnum):
 def take_snapshot(cam_id: id, detection_type: str, detection_time: str, quality: int = 35,
                   is_optimize: bool = True):
     cam = get_cam(cam_id)
+    logger.debug(f'Handling SNAP for camera: {cam.cam_name}')
 
     snap_img_path = BASE_PATH.joinpath(f'cam_{cam_id}_snap.jpg')
 
@@ -51,6 +52,7 @@ def take_snapshot(cam_id: id, detection_type: str, detection_time: str, quality:
 def take_gif(cam_id: id, detection_type: str, detection_time: str, take_seconds: int = 5, quality: int = 35,
              fps: int = 10):
     cam = get_cam(cam_id)
+    logger.debug(f'Handling GIF for camera: {cam.cam_name}')
 
     gif_path = BASE_PATH.joinpath(f'cam_{cam_id}_motion.gif')
 
@@ -80,14 +82,3 @@ def take_gif(cam_id: id, detection_type: str, detection_time: str, take_seconds:
             channel=os.getenv('GIF_CHANNEL', cam.slack_channel),
             text=build_motion_message(detection_type, cam, detection_time, avg_cnts_per_frame=avg_cnts_per_frame)
         )
-
-
-@celery_app.task
-def take_snap_or_gif(mode: CaptureMode, cam_id: id, detection_type: str, detection_time: str, take_seconds: int = 5, quality: int = 35):
-    """Attempts to unify snapping and gif creation into one process, so as to not overload the camera.
-
-    If a snap is done along with a GIF, the snap will either be the first or second frame of the RTSP,
-    depending on whether motion detection is enabled and if the motion detection methodology is
-    the image difference routine
-    """
-    pass

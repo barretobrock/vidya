@@ -15,7 +15,11 @@ import numpy as np
 import requests
 
 from vidya import ROOT
-from vidya.core.motion_detect import detect_motion_with_diff
+from vidya.core.motion_detect import (
+    GIFHandleMethod,
+    MotionDetectionType,
+    MotionDetector,
+)
 
 
 class IPCamera:
@@ -97,47 +101,47 @@ class IPCamera:
     def snap_with_motion(self, target_width: Optional[int] = DEFAULT_WIDTH) -> Tuple[Image.Image, int]:
         logger.debug('Taking snapshots...')
         imgs = self.snap(n_snaps=2, target_width=target_width)
+        # TODO: Everything below here should be wrapped into a convenience method in motion detector
+        img_arr1, img_arr2 = [np.asarray(x, dtype=np.uint8) for x in imgs]
 
         logger.debug('Comparing snapshots')
-        img_arr, ctrs = detect_motion_with_diff(
-            img_arr=np.asarray(imgs[1], dtype=np.uint8),
-            prev_img_arr=np.asarray(imgs[0], dtype=np.uint8)
+        md = MotionDetector(detection_type=MotionDetectionType.DIFF)
+        mask, blur_arr = md.motion_detect_with_diff(
+            img_arr=img_arr2,
+            prev_img_blur_arr=md.grey_and_blur_img(img_arr1)
         )
+        cntrs = md.extract_contours(fg_mask=mask)
+        img_arr = md.contouring_normal(img_arr2, contours=cntrs)
+
         img = Image.fromarray(img_arr)
-        return img, len(ctrs)
+        return img, len(cntrs)
 
     def stream(self) -> cv2.VideoCapture:
         rtsp_url = f'rtsp://{self._usr}:{self._pwd}@{self.cam_ip}:554/{self.stream_name}'
         return cv2.VideoCapture(rtsp_url)
 
-    def stream_gif_with_motion(self, n_frames: int, target_width: Optional[int] = DEFAULT_WIDTH) -> Tuple[List[Image.Image], float]:
+    def stream_gif_with_motion(self, n_frames: int, target_width: Optional[int] = DEFAULT_WIDTH, method: str = 'normal') -> Tuple[List[Image.Image], float]:
         cap = self.stream()
         if not cap.isOpened():
             # Failed to open for some reason
             ValueError('Stream was unable to be opened.')
 
-        completed_frames = []  # type: List[Image.Image]
-        cnts_per_frame = []
-        prev_rgb_frame_arr = None
+        org_frames = []
 
         logger.debug('Beginning frame collection')
         for i in range(n_frames):
             _, frame = cap.read()
             if frame.shape[1] > target_width:
                 frame = imutils.resize(frame, width=target_width)
-            rgb_frame_arr = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-
-            rgb_frame_arr_drawn, cnts = detect_motion_with_diff(img_arr=rgb_frame_arr, prev_img_arr=prev_rgb_frame_arr)
-            cnts_per_frame.append(len(cnts))
-            completed_frames.append(Image.fromarray(rgb_frame_arr_drawn))
-            prev_rgb_frame_arr = rgb_frame_arr.copy()
-
+            org_frames.append(frame)
         cap.release()
         logger.debug('Completed frame collection')
 
-        try:
-            avg_cnts_per_frame = sum(cnts_per_frame) / len(cnts_per_frame)
-        except ZeroDivisionError:
-            avg_cnts_per_frame = 0
+        logger.debug('Correcting frames & processing for motion.')
 
-        return completed_frames, avg_cnts_per_frame
+        md = MotionDetector(detection_type=MotionDetectionType.DIFF, gif_handle_method=GIFHandleMethod.OPTIMIZED)
+        processed_frames, avg_cntrs_per_frame = md.batch_process_motion_detect_with_diff(frames=org_frames)
+
+        completed_frames = [Image.fromarray(x) for x in processed_frames]
+
+        return completed_frames, avg_cntrs_per_frame

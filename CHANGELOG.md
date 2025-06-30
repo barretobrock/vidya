@@ -15,6 +15,12 @@ _Note: 'Unreleased' section below is used for untagged changes that will be issu
 #### Security
 __BEGIN-CHANGELOG__
  
+### [0.1.7] - 2025-06-30
+#### Added
+ - Improved GIF handling to significantly reduce file size by leveraging alpha channels 
+#### Changed
+ - Motion detection now a class to couple some methods
+ 
 ### [0.1.6] - 2025-06-26
 #### Added
  - Avoid `ZeroDivisionError` when calculating avg contours in gif
